@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+
+{% block title %}Home - Game Platform{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="row align-items-center py-5">
+    <div class="col-md-6">
+        <h1 class="display-4 mb-4">Welcome to Game Platform</h1>
+        <p class="lead mb-4">Experience the thrill of online gaming with secure transactions and fair gameplay.</p>
+        {% if not current_user.is_authenticated %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('register') }}" class="btn btn-primary btn-lg">Get Started</a>
+                <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-lg">Login</a>
+            </div>
+        {% else %}
+            <div class="d-grid gap-2 d-md-flex">
+                <a href="{{ url_for('games') }}" class="btn btn-primary btn-lg">Play Now</a>
+                <a href="{{ url_for('wallet') }}" class="btn btn-outline-primary btn-lg">View Wallet</a>
+            </div>
+        {% endif %}
+    </div>
+    <div class="col-md-6">
+        <img src="{{ url_for('static', filename='images/hero-image.png') }}" alt="Gaming" class="img-fluid rounded shadow">
+    </div>
+</div>
+
+<!-- Stats Section -->
+<div class="row g-4 py-5">
+    <div class="col-md-3">
+        <div class="card text-center h-100 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-users fa-3x text-primary mb-3"></i>
+                <h3 class="card-title">{{ stats.total_players }}</h3>
+                <p class="card-text text-muted">Active Players</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-gamepad fa-3x text-success mb-3"></i>
+                <h3 class="card-title">{{ stats.active_games }}</h3>
+                <p class="card-text text-muted">Active Games</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-trophy fa-3x text-warning mb-3"></i>
+                <h3 class="card-title">{{ stats.total_winnings }}</h3>
+                <p class="card-text text-muted">Total Winnings</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center h-100 shadow-sm">
+            <div class="card-body">
+                <i class="fas fa-star fa-3x text-info mb-3"></i>
+                <h3 class="card-title">{{ stats.rating }}</h3>
+                <p class="card-text text-muted">Platform Rating</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Games -->
+<div class="row py-5">
+    <div class="col-12">
+        <h2 class="mb-4">Featured Games</h2>
+        <div class="row row-cols-1 row-cols-md-3 g-4">
+            {% for game in featured_games %}
+            <div class="col">
+                <div class="card h-100 shadow-sm">
+                    <img src="{{ game.image_url }}" class="card-img-top" alt="{{ game.name }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ game.name }}</h5>
+                        <p class="card-text">{{ game.description }}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="badge bg-primary">{{ game.type }}</span>
+                            <a href="{{ url_for('game_details', game_id=game.id) }}" class="btn btn-outline-primary">Learn More</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- How It Works -->
+<div class="row py-5">
+    <div class="col-12">
+        <h2 class="text-center mb-5">How It Works</h2>
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3">1</div>
+                        <h5 class="card-title">Create Account</h5>
+                        <p class="card-text">Sign up for free and verify your account to start playing.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3">2</div>
+                        <h5 class="card-title">Add Funds</h5>
+                        <p class="card-text">Deposit funds securely using various payment methods.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 border-0 shadow-sm">
+                    <div class="card-body text-center">
+                        <div class="display-4 text-primary mb-3">3</div>
+                        <h5 class="card-title">Start Playing</h5>
+                        <p class="card-text">Join game rooms and compete with players worldwide.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Testimonials -->
+<div class="row py-5">
+    <div class="col-12">
+        <h2 class="text-center mb-5">What Players Say</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ url_for('static', filename='images/avatar1.jpg') }}" 
+                                 alt="User Avatar" class="rounded-circle me-3" width="50">
+                            <div>
+                                <h6 class="mb-0">John Doe</h6>
+                                <small class="text-muted">Poker Player</small>
+                            </div>
+                        </div>
+                        <p class="card-text">"The best gaming platform I've used. Fast payouts and great community!"</p>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ url_for('static', filename='images/avatar2.jpg') }}" 
+                                 alt="User Avatar" class="rounded-circle me-3" width="50">
+                            <div>
+                                <h6 class="mb-0">Jane Smith</h6>
+                                <small class="text-muted">Blackjack Enthusiast</small>
+                            </div>
+                        </div>
+                        <p class="card-text">"Amazing user interface and smooth gameplay experience."</p>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star-half-alt"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm">
+                    <div class="card-body">
+                        <div class="d-flex align-items-center mb-3">
+                            <img src="{{ url_for('static', filename='images/avatar3.jpg') }}" 
+                                 alt="User Avatar" class="rounded-circle me-3" width="50">
+                            <div>
+                                <h6 class="mb-0">Mike Johnson</h6>
+                                <small class="text-muted">Roulette Player</small>
+                            </div>
+                        </div>
+                        <p class="card-text">"Great customer support and secure payment system."</p>
+                        <div class="text-warning">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Call to Action -->
+<div class="row py-5">
+    <div class="col-12">
+        <div class="card bg-primary text-white">
+            <div class="card-body text-center p-5">
+                <h2 class="mb-4">Ready to Start Playing?</h2>
+                <p class="lead mb-4">Join thousands of players and experience the thrill of online gaming.</p>
+                {% if not current_user.is_authenticated %}
+                    <a href="{{ url_for('register') }}" class="btn btn-light btn-lg">Sign Up Now</a>
+                {% else %}
+                    <a href="{{ url_for('games') }}" class="btn btn-light btn-lg">Play Now</a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

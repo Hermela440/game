@@ -1,0 +1,32 @@
+[run]
+source = .
+omit =
+    */tests/*
+    */venv/*
+    */env/*
+    */migrations/*
+    */__init__.py
+    */config.py
+    */wsgi.py
+    */manage.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if __name__ == .__main__.:
+    pass
+    raise ImportError
+    except ImportError:
+    def main\(\):
+
+show_missing = True
+fail_under = 80
+
+[html]
+directory = coverage_html
+title = Test Coverage Report
+
+[xml]
+output = coverage.xml 
