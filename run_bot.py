@@ -9,6 +9,7 @@ from enum import Enum
 from telegram.error import NetworkError, TimedOut
 import asyncio
 import sqlite3
+from collections import Counter
 
 # Load environment variables
 load_dotenv()
@@ -131,6 +132,58 @@ def determine_winner(move1: str, move2: str) -> int:
         return 1
     return 2
 
+def evaluate_3player_game(moves: dict):
+    """
+    Evaluate a 3-player Rock Paper Scissors game.
+    
+    Args:
+        moves: dict of {user_id: move}, e.g. {101: "rock", 102: "rock", 103: "paper"}
+    
+    Returns:
+        tuple: (winner_id or None, result_text, gif_key)
+    """
+    # Define what each move beats
+    beats = {
+        "rock": "scissors",
+        "scissors": "paper",
+        "paper": "rock"
+    }
+    
+    values = list(moves.values())
+    move_count = Counter(values)
+    unique_moves = list(move_count.keys())
+    
+    # Emoji mapping for moves
+    emoji_map = {
+        "rock": "🪨",
+        "paper": "📄",
+        "scissors": "✂️"
+    }
+    
+    if len(unique_moves) == 1:
+        return None, "🤝 It's a draw! Everyone chose the same.", "draw"
+    
+    if len(unique_moves) == 3:
+        return None, "🤝 It's a draw! All three moves cancel each other.", "draw"
+    
+    # Only 2 moves present
+    move1, move2 = unique_moves
+    if beats[move1] == move2:
+        winner_move, loser_move = move1, move2
+    elif beats[move2] == move1:
+        winner_move, loser_move = move2, move1
+    else:
+        return None, "🤝 It's a draw! No move beats the other.", "draw"
+    
+    # Check if only one player chose the winning move
+    if move_count[winner_move] == 1:
+        winner_id = [uid for uid, m in moves.items() if m == winner_move][0]
+        result_text = f"🏆 Player {winner_id} wins! {emoji_map[winner_move]} beats {emoji_map[loser_move]}"
+        gif_key = f"{winner_move}_vs_{loser_move}"
+        return winner_id, result_text, gif_key
+    else:
+        return None, "🤝 It's a draw! Multiple players used the winning move.", "draw"
+
 async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAULT_TYPE):
     """Determine the winner and notify all players with GIF animations."""
     try:
@@ -141,57 +194,8 @@ async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAUL
             logger.error(f"Not all players have moved in room {room_id}")
             return
         
-        # Get all moves and their counts
-        move_counts = {}
-        for move in moves.values():
-            move_counts[move] = move_counts.get(move, 0) + 1
-        
-        # Get unique moves
-        unique_moves = set(moves.values())
-        
-        # Define what beats what
-        beats = {
-            "rock": "scissors",
-            "scissors": "paper",
-            "paper": "rock"
-        }
-        
-        # Determine winner(s) and GIF
-        winners = []
-        gif_filename = "draw.gif"
-        
-        if len(unique_moves) == 1:
-            # All players chose the same move
-            result = "🤝 It's a draw! Everyone chose the same move."
-        elif len(unique_moves) == 3:
-            # All players chose different moves
-            result = "🤝 It's a draw! Everyone chose differently."
-        else:
-            # Two different moves
-            m1, m2 = list(unique_moves)
-            
-            # Check which move beats the other
-            if beats[m1] == m2:
-                winning_move, losing_move = m1, m2
-            elif beats[m2] == m1:
-                winning_move, losing_move = m2, m1
-            else:
-                # No clear winner
-                result = "🤝 It's a draw! No move dominated."
-                winning_move = None
-                losing_move = None
-            
-            if winning_move:
-                # Find players with winning move
-                winners = [pid for pid, move in moves.items() if move == winning_move]
-                
-                if len(winners) == 1:
-                    # Single winner
-                    result = f"🏆 Player {winners[0]} wins with {winning_move.title()}!"
-                    gif_filename = f"{winning_move}_vs_{losing_move}.gif"
-                else:
-                    # Multiple winners
-                    result = f"🤝 It's a draw! Multiple players chose {winning_move.title()}!"
+        # Evaluate the game
+        winner_id, result_text, gif_key = evaluate_3player_game(moves)
         
         # Update stats
         conn = None
@@ -200,21 +204,21 @@ async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAUL
             c = conn.cursor()
             
             # Update winners
-            for winner_id in winners:
+            if winner_id:
                 c.execute('''
                     UPDATE users 
                     SET total_wins = total_wins + 1
                     WHERE telegram_id = ?
                 ''', (winner_id,))
-            
-            # Update losers
-            losers = [pid for pid in room["players"] if pid not in winners]
-            for loser_id in losers:
-                c.execute('''
-                    UPDATE users 
-                    SET total_losses = total_losses + 1
-                    WHERE telegram_id = ?
-                ''', (loser_id,))
+                
+                # Update losers
+                losers = [pid for pid in room["players"] if pid != winner_id]
+                for loser_id in losers:
+                    c.execute('''
+                        UPDATE users 
+                        SET total_losses = total_losses + 1
+                        WHERE telegram_id = ?
+                    ''', (loser_id,))
             
             # Update game record
             c.execute('''
@@ -228,7 +232,7 @@ async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAUL
                 moves.get(room["players"][0]),
                 moves.get(room["players"][1]),
                 moves.get(room["players"][2]),
-                winners[0] if len(winners) == 1 else None,
+                winner_id,
                 room_id
             ))
             
@@ -251,7 +255,7 @@ async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAUL
             try:
                 await context.bot.send_message(
                     chat_id=player_id,
-                    text=f"🎮 *Game Over!*\n\n{result}",
+                    text=f"🎮 *Game Over!*\n\n{result_text}",
                     reply_markup=reply_markup,
                     parse_mode='Markdown'
                 )
@@ -261,6 +265,16 @@ async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAUL
         
         # Wait a moment before showing the animation
         await asyncio.sleep(1)
+        
+        # Map gif_key to filename
+        gif_map = {
+            "rock_vs_scissors": "rock_vs_scissors.gif",
+            "scissors_vs_paper": "scissors_vs_paper.gif",
+            "paper_vs_rock": "paper_vs_rock.gif",
+            "draw": "draw.gif"
+        }
+        
+        gif_filename = gif_map.get(gif_key, "draw.gif")
         
         # Then send the GIF animation
         gif_path = os.path.join("gifs", gif_filename)
