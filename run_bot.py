@@ -275,34 +275,54 @@ async def determine_winner_and_notify(room_id: str, context: ContextTypes.DEFAUL
         }
         
         gif_filename = gif_map.get(gif_key, "draw.gif")
-        
-        # Then send the GIF animation
         gif_path = os.path.join("gifs", gif_filename)
-        try:
-            with open(gif_path, "rb") as gif:
-                for player_id in room["players"]:
-                    try:
-                        # Send the GIF animation with a caption
-                        await context.bot.send_animation(
-                            chat_id=player_id,
-                            animation=gif,
-                            caption="🎬 *Watch the battle!*",
-                            parse_mode='Markdown'
-                        )
-                        logger.info(f"Sent animation to player {player_id}")
-                    except Exception as e:
-                        logger.error(f"Error sending animation to player {player_id}: {e}")
-        except FileNotFoundError:
+        
+        # Check if GIF file exists
+        if not os.path.exists(gif_path):
             logger.error(f"GIF file not found: {gif_path}")
-            # Notify players that animation is not available
+            # Send a message about missing animation
             for player_id in room["players"]:
                 try:
                     await context.bot.send_message(
                         chat_id=player_id,
-                        text="⚠️ Animation not available for this result."
+                        text="🎬 *Animation Status*\n\n" +
+                             "The game animation is currently unavailable.\n" +
+                             "Please ensure the following GIF files are in the 'gifs' directory:\n" +
+                             "• rock_vs_scissors.gif\n" +
+                             "• scissors_vs_paper.gif\n" +
+                             "• paper_vs_rock.gif\n" +
+                             "• draw.gif",
+                        parse_mode='Markdown'
                     )
                 except Exception as e:
-                    logger.error(f"Error sending fallback message to player {player_id}: {e}")
+                    logger.error(f"Error sending animation status to player {player_id}: {e}")
+        else:
+            # Send the GIF animation
+            try:
+                with open(gif_path, "rb") as gif:
+                    for player_id in room["players"]:
+                        try:
+                            # Send the GIF animation with a caption
+                            await context.bot.send_animation(
+                                chat_id=player_id,
+                                animation=gif,
+                                caption="🎬 *Watch the battle!*",
+                                parse_mode='Markdown'
+                            )
+                            logger.info(f"Sent animation to player {player_id}")
+                        except Exception as e:
+                            logger.error(f"Error sending animation to player {player_id}: {e}")
+            except Exception as e:
+                logger.error(f"Error reading GIF file: {e}")
+                # Notify players of the error
+                for player_id in room["players"]:
+                    try:
+                        await context.bot.send_message(
+                            chat_id=player_id,
+                            text="⚠️ Error loading animation. Please try again later."
+                        )
+                    except Exception as notify_error:
+                        logger.error(f"Error sending error message to player {player_id}: {notify_error}")
         
         # Clean up game state
         for player_id in room["players"]:
