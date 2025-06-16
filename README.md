@@ -1,26 +1,27 @@
-# Telegram Bot Project
+# Rock Paper Scissors Telegram Bot
 
-A Telegram bot built with Python using the python-telegram-bot library.
+A multiplayer Rock Paper Scissors game bot for Telegram that supports up to 3 players per game.
 
 ## Features
 
-- User registration and management
-- Game room creation and management
-- Balance tracking
-- Game statistics
+- 🎮 Multiplayer support (2-3 players)
+- 🏆 Win/loss tracking
+- 🎬 Animated battle results
+- 🔄 Rematch option
+- 📊 Player statistics
 
 ## Setup
 
 1. Clone the repository:
 ```bash
-git clone <your-repository-url>
-cd <repository-name>
+git clone https://github.com/yourusername/rock-paper-scissors-bot.git
+cd rock-paper-scissors-bot
 ```
 
-2. Create and activate a virtual environment:
+2. Create a virtual environment and activate it:
 ```bash
 python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 ```
 
 3. Install dependencies:
@@ -28,47 +29,48 @@ source venv/bin/activate  # On Windows: .\venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-4. Create a `.env` file with your configuration:
+4. Create a `.env` file with your bot token:
 ```
-TELEGRAM_BOT_TOKEN=your_bot_token_here
-DATABASE_URL=sqlite:///bot.db
+BOT_TOKEN=your_telegram_bot_token_here
 ```
 
-5. Run the bot:
+5. Add GIF animations:
+   - Create a `gifs` directory
+   - Add the following GIF files:
+     - `rock_vs_scissors.gif`
+     - `paper_vs_rock.gif`
+     - `scissors_vs_paper.gif`
+     - `draw.gif`
+
+## Running the Bot
+
 ```bash
 python run_bot.py
 ```
 
-## Project Structure
-
-- `bot.py` - Main bot logic and command handlers
-- `models/` - Database models
-  - `user.py` - User model
-  - `room.py` - Room model
-  - `game.py` - Game model
-- `database.py` - Database configuration
-- `password_manager.py` - Password hashing and verification
-- `run_bot.py` - Bot entry point
-
 ## Commands
 
-- `/start` - Start the bot and register
-- `/help` - Show available commands
-- `/balance` - Check your balance
-- `/create_room` - Create a new game room
-- `/join_room` - Join an existing room
-- `/leave_room` - Leave current room
-- `/room_info` - Show room information
-- `/game_status` - Show current game status
+- `/start` - Start the bot and get instructions
+- `/play` - Start a new game
+- `/stats` - View your win/loss statistics
+- `/help` - Show help information
+
+## Game Rules
+
+1. Rock (🪨) beats Scissors (✂️)
+2. Scissors (✂️) beats Paper (📄)
+3. Paper (📄) beats Rock (🪨)
+4. Same moves result in a draw
+5. All different moves result in a draw
 
 ## Contributing
 
 1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+2. Create a feature branch
+3. Commit your changes
+4. Push to the branch
+5. Create a Pull Request
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details. 
